@@ -1,0 +1,38 @@
+// parsing part of an AACAudioConfig and constructing an adts header
+
+
+/* this is done with the initial config packet */
+       audioObjectType := ((b[0] & 0xF1) >> 3) - 1
+       audioFreqIndex  := ((b[0] & 0x07) << 1) | ((b[1] & 0x80) >> 7)
+       audioChannelConfig := ((b[1] & 0x78) >> 3)
+
+       h.adts[0] = 0xFF // first half of syncword
+       h.adts[1] = 0xF1 // second half of syncword, then
+                        //  mpeg version: 4 (1 bit)
+                        //  mpeg layer: 0   (2 bit)
+                        //  protection: 1    (1 bit)
+       // next byte: 2 bits of profile, 4 bits of freq index, 1 private bit, 1/3 of channel config
+       h.adts[2] = 0x00 | ((audioObjectType & 0x03) << 6) | ((audioFreqIndex & 0x0F) << 2) | ((audioChannelConfig & 0x07) >> 2)
+
+       // next byte: 2/3 of channel config, 1 bit originality, 1 bit home, 1 bit copyrighted, 1 bit copyright, 2/13 of length
+       h.adts[3] = 0x00 | ((audioChannelConfig & 0x06) << 6) 
+
+       //next byte: 8/13 of length
+       h.adts[4] = 0x00
+
+       //next byte: 3/13 of length, 5/11 of fullness
+       h.adts[5] = 0x00
+
+       //next byte: 6/11 of fullness, 2 bits of (frames -1 )
+       h.adts[6] = 0x00
+
+/* this is done with data packets */
+
+       var packetLen uint16 = uint16(packet.Len() + 7) & 0x1FFF // add 7 to account for adts header
+       h.adts[3] = h.adts[3] & 0xFC
+       h.adts[3] = h.adts[3] | byte(packetLen >> 11)
+
+       h.adts[4] = byte(packetLen >> 3)
+
+       h.adts[5] = h.adts[5] & 0x1F
+       h.adts[5] = h.adts[5] | (byte(packetLen) << 5)
