@@ -42,6 +42,7 @@ AAC audio is resampled to 48000kHz, stereo audio and encoded to Opus using ffmpe
 
 * Figure out what events from Janus I should handle (I just blast audio/video).
 * Check more sources for timing info (like the SPS NAL).
+* Support more audio samplerates (maybe?)
 
 ## LICENSE
 
