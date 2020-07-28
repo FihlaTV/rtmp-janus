@@ -6,12 +6,12 @@ import (
     "bytes"
     "io"
     "fmt"
-	"log"
+    "log"
     flvtag "github.com/yutopp/go-flv/tag"
     "github.com/yutopp/go-rtmp"
     rtmpmsg "github.com/yutopp/go-rtmp/message"
-	janus "github.com/notedit/janus-go"
-	"github.com/pion/webrtc/v2"
+    janus "github.com/notedit/janus-go"
+    "github.com/pion/webrtc/v2"
 )
 
 var _ rtmp.Handler = (*RtmpHandler)(nil)
@@ -30,22 +30,22 @@ type RtmpHandler struct {
 }
 
 func watchHandle(handle *janus.Handle) {
-	// wait for event
-	for {
-		msg := <-handle.Events
-		switch msg := msg.(type) {
-		case *janus.SlowLinkMsg:
-			log.Println("SlowLinkMsg type ", handle.ID)
-		case *janus.MediaMsg:
-			log.Println("MediaEvent type", msg.Type, " receiving ", msg.Receiving)
-		case *janus.WebRTCUpMsg:
-			log.Println("WebRTCUp type ", handle.ID)
-		case *janus.HangupMsg:
-			log.Println("HangupEvent type ", handle.ID)
-		case *janus.EventMsg:
-			log.Printf("EventMsg %+v", msg.Plugindata.Data)
-		}
-	}
+    // wait for event
+    for {
+        msg := <-handle.Events
+        switch msg := msg.(type) {
+        case *janus.SlowLinkMsg:
+            log.Println("SlowLinkMsg type ", handle.ID)
+        case *janus.MediaMsg:
+            log.Println("MediaEvent type", msg.Type, " receiving ", msg.Receiving)
+        case *janus.WebRTCUpMsg:
+            log.Println("WebRTCUp type ", handle.ID)
+        case *janus.HangupMsg:
+            log.Println("HangupEvent type ", handle.ID)
+        case *janus.EventMsg:
+            log.Printf("EventMsg %+v", msg.Plugindata.Data)
+        }
+    }
 }
 
 func connectJanus(h *RtmpHandler) error {
@@ -55,108 +55,108 @@ func connectJanus(h *RtmpHandler) error {
 
     log.Println("Connecting to Videoroom",h.roomId)
 
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
-		SDPSemantics: webrtc.SDPSemanticsUnifiedPlanWithFallback,
-	}
+    config := webrtc.Configuration{
+        ICEServers: []webrtc.ICEServer{
+            {
+                URLs: []string{"stun:stun.l.google.com:19302"},
+            },
+        },
+        SDPSemantics: webrtc.SDPSemanticsUnifiedPlanWithFallback,
+    }
 
-	// Create a new RTCPeerConnection
+    // Create a new RTCPeerConnection
     h.pc, err = webrtc.NewAPI(webrtc.WithMediaEngine(h.m)).NewPeerConnection(config)
-	// h.pc, err = webrtc.NewPeerConnection(config)
-	if err != nil {
+    // h.pc, err = webrtc.NewPeerConnection(config)
+    if err != nil {
         fmt.Printf("Failed to create peerconnection: %s\n",err)
         return err
-	}
+    }
 
-	h.pc.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		log.Println("Connection State has changed", connectionState.String())
-	})
+    h.pc.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
+        log.Println("Connection State has changed", connectionState.String())
+    })
 
-	// Create audio track
-	h.audioTrack, err = h.pc.NewTrack(webrtc.DefaultPayloadTypeOpus, RandUint32(), MathRandAlpha(16), MathRandAlpha(16))
-	if err != nil {
+    // Create audio track
+    h.audioTrack, err = h.pc.NewTrack(webrtc.DefaultPayloadTypeOpus, RandUint32(), MathRandAlpha(16), MathRandAlpha(16))
+    if err != nil {
         fmt.Printf("Failed to create audiotrack: %s\n", err)
         return err
-	}
-	_, err = h.pc.AddTrack(h.audioTrack)
-	if err != nil {
+    }
+    _, err = h.pc.AddTrack(h.audioTrack)
+    if err != nil {
         fmt.Printf("Failed to add audiotrack: %s\n", err)
         return err
-	}
+    }
 
-	// Create video track
-	h.videoTrack, err = h.pc.NewTrack(webrtc.DefaultPayloadTypeH264, RandUint32(), MathRandAlpha(16), MathRandAlpha(16))
-	if err != nil {
+    // Create video track
+    h.videoTrack, err = h.pc.NewTrack(webrtc.DefaultPayloadTypeH264, RandUint32(), MathRandAlpha(16), MathRandAlpha(16))
+    if err != nil {
         fmt.Printf("Failed to create videotrack: %s\n", err)
-		return err
-	}
-	_, err = h.pc.AddTrack(h.videoTrack)
-	if err != nil {
+        return err
+    }
+    _, err = h.pc.AddTrack(h.videoTrack)
+    if err != nil {
         fmt.Printf("Failed to add videotrack: %s\n", err)
         return err
-	}
+    }
 
-	offer, err = h.pc.CreateOffer(nil)
-	if err != nil {
+    offer, err = h.pc.CreateOffer(nil)
+    if err != nil {
         fmt.Printf("Failed to create offer: %s\n",err)
         return err
-	}
+    }
 
-	err = h.pc.SetLocalDescription(offer)
-	if err != nil {
+    err = h.pc.SetLocalDescription(offer)
+    if err != nil {
         fmt.Printf("Failed to setlocaldescription",err)
         return err
-	}
+    }
 
-	h.handle, err = h.session.Attach("janus.plugin.videoroom")
-	if err != nil {
+    h.handle, err = h.session.Attach("janus.plugin.videoroom")
+    if err != nil {
         fmt.Printf("Failed to attach",err)
         return err
-	}
+    }
 
-	go watchHandle(h.handle)
+    go watchHandle(h.handle)
 
-	_, err = h.handle.Message(map[string]interface{}{
-		"request": "join",
-		"ptype":   "publisher",
-		"room":    h.roomId,
-		"id":      RandUint32(),
-	}, nil)
-	if err != nil {
+    _, err = h.handle.Message(map[string]interface{}{
+        "request": "join",
+        "ptype":   "publisher",
+        "room":    h.roomId,
+        "id":      RandUint32(),
+    }, nil)
+    if err != nil {
         fmt.Printf("Failed to send handle join: %s\n", err)
         return err
-	}
+    }
 
-	msg, err = h.handle.Message(map[string]interface{}{
-		"request": "publish",
-		"audio":   true,
-		"video":   true,
-		"data":    false,
+    msg, err = h.handle.Message(map[string]interface{}{
+        "request": "publish",
+        "audio":   true,
+        "video":   true,
+        "data":    false,
         "videocodec": "h264",
         "audiocodec": "opus",
-	}, map[string]interface{}{
-		"type":    "offer",
-		"sdp":     offer.SDP,
-		"trickle": false,
-	})
-	if err != nil {
+    }, map[string]interface{}{
+        "type":    "offer",
+        "sdp":     offer.SDP,
+        "trickle": false,
+    })
+    if err != nil {
         fmt.Printf("Failed to send handle publish: %s\n", err)
         return err
-	}
+    }
 
-	if msg.Jsep != nil {
-		err = h.pc.SetRemoteDescription(webrtc.SessionDescription{
-			Type: webrtc.SDPTypeAnswer,
-			SDP:  msg.Jsep["sdp"].(string),
-		})
-		if err != nil {
+    if msg.Jsep != nil {
+        err = h.pc.SetRemoteDescription(webrtc.SessionDescription{
+            Type: webrtc.SDPTypeAnswer,
+            SDP:  msg.Jsep["sdp"].(string),
+        })
+        if err != nil {
             fmt.Printf("Failed to setremotedescription: %s\n", err)
             return err
-		}
+        }
     }
 
     h.videoHandler.videoTrack = h.videoTrack

@@ -15,10 +15,10 @@ import (
     "fmt"
     "log"
     "net"
-	"time"
+    "time"
     "github.com/yutopp/go-rtmp"
-	janus "github.com/notedit/janus-go"
-	"github.com/pion/webrtc/v2"
+    janus "github.com/notedit/janus-go"
+    "github.com/pion/webrtc/v2"
     "github.com/pion/rtp/codecs"
 )
 
@@ -76,15 +76,15 @@ func main() {
     }
 
     // start a keepliave timer for the session
-	go func() {
-		for {
-			if _, keepAliveErr := session.KeepAlive(); err != nil {
-				panic(keepAliveErr)
-			}
+    go func() {
+        for {
+            if _, keepAliveErr := session.KeepAlive(); err != nil {
+                panic(keepAliveErr)
+            }
 
-			time.Sleep(5 * time.Second)
-		}
-	}()
+            time.Sleep(5 * time.Second)
+        }
+    }()
 
 
     srv := rtmp.NewServer(&rtmp.ServerConfig {
