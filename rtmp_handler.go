@@ -12,7 +12,6 @@ import (
     rtmpmsg "github.com/yutopp/go-rtmp/message"
 	janus "github.com/notedit/janus-go"
 	"github.com/pion/webrtc/v2"
-
 )
 
 var _ rtmp.Handler = (*RtmpHandler)(nil)
@@ -21,6 +20,7 @@ type RtmpHandler struct {
     rtmp.DefaultHandler
     roomId uint64
     pc *webrtc.PeerConnection
+    m webrtc.MediaEngine
     audioTrack *webrtc.Track
     videoTrack *webrtc.Track
     videoHandler *VideoHandler
@@ -65,7 +65,8 @@ func connectJanus(h *RtmpHandler) error {
 	}
 
 	// Create a new RTCPeerConnection
-	h.pc, err = webrtc.NewPeerConnection(config)
+    h.pc, err = webrtc.NewAPI(webrtc.WithMediaEngine(h.m)).NewPeerConnection(config)
+	// h.pc, err = webrtc.NewPeerConnection(config)
 	if err != nil {
         fmt.Printf("Failed to create peerconnection: %s\n",err)
         return err
@@ -135,6 +136,8 @@ func connectJanus(h *RtmpHandler) error {
 		"audio":   true,
 		"video":   true,
 		"data":    false,
+        "videocodec": "h264",
+        "audiocodec": "opus",
 	}, map[string]interface{}{
 		"type":    "offer",
 		"sdp":     offer.SDP,

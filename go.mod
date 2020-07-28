@@ -7,6 +7,7 @@ require (
 	github.com/notedit/janus-go v0.0.0-20200517101215-10eb8b95d1a0
 	github.com/pion/dtls/v2 v2.0.2 // indirect
 	github.com/pion/randutil v0.1.0
+	github.com/pion/rtp v1.6.0
 	github.com/pion/srtp v1.5.0 // indirect
 	github.com/pion/webrtc/v2 v2.2.21
 	github.com/yutopp/go-flv v0.2.0
