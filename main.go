@@ -3,7 +3,7 @@ package main
 import (
 /*
 #cgo CFLAGS: -g
-#cgo LDFLAGS: -lavcodec -lavutil -lswresample
+#cgo pkg-config: libavcodec libavutil libswresample
 
 #include <libavcodec/avcodec.h>
 #include "aac_decoder.h"
