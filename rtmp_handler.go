@@ -21,6 +21,8 @@ type RtmpHandler struct {
     roomId uint64
     pc *webrtc.PeerConnection
     m webrtc.MediaEngine
+    default_options map[string]interface{}
+    janus_options map[string]interface{}
     audioTrack *webrtc.Track
     videoTrack *webrtc.Track
     videoHandler *VideoHandler
@@ -125,6 +127,7 @@ func connectJanus(h *RtmpHandler) error {
         "ptype":   "publisher",
         "room":    h.roomId,
         "id":      RandUint32(),
+        "display": h.janus_options["display"],
     }, nil)
     if err != nil {
         fmt.Printf("Failed to send handle join: %s\n", err)
@@ -173,6 +176,8 @@ func (h *RtmpHandler) OnServe(conn *rtmp.Conn) {
     h.audioHandler = NewAudioHandler()
     h.handle = nil
     h.pc = nil
+    h.janus_options = make(map[string]interface{})
+    h.janus_options["display"] = h.default_options["display"]
 }
 
 func (h *RtmpHandler) OnConnect(timestamp uint32, cmd *rtmpmsg.NetConnectionConnect) error {

@@ -2,7 +2,7 @@ package main
 
 import (
 /*
-#cgo CFLAGS: -Wall -Wextra -g
+#cgo CFLAGS: -g
 #cgo LDFLAGS: -lavcodec -lavutil -lswresample
 
 #include <libavcodec/avcodec.h>
@@ -20,6 +20,7 @@ import (
     janus "github.com/notedit/janus-go"
     "github.com/pion/webrtc/v2"
     "github.com/pion/rtp/codecs"
+    "flag"
 )
 
 func main() {
@@ -44,12 +45,20 @@ func main() {
           webrtc.DefaultPayloadTypeH264,
           &codecs.H264Payloader{}))
 
-    if len(os.Args) < 3 {
-        fmt.Printf("Usage: %s <listen-addr> <url>\n",os.Args[0])
+    janus_options := make(map[string]interface{})
+    displayPtr := flag.String("display", "external", "Display name to set in Janus VideoRoom")
+
+    flag.Parse()
+    args := flag.Args()
+
+    janus_options["display"] = *displayPtr
+
+    if len(args) < 2 {
+        fmt.Printf("Usage: %s -display=external <listen-addr> <url>\n",os.Args[0])
         os.Exit(1)
     }
 
-    tcpAddr, err := net.ResolveTCPAddr("tcp",os.Args[1])
+    tcpAddr, err := net.ResolveTCPAddr("tcp",args[0])
     if err != nil {
         fmt.Printf("Failed: %v\n", err)
     }
@@ -62,7 +71,7 @@ func main() {
 
 
     // connect to janus
-    gateway, err := janus.Connect(os.Args[2])
+    gateway, err := janus.Connect(args[1])
     if err != nil {
         fmt.Printf("Failed to connect to Janus: %s\n",err)
         os.Exit(1)
@@ -92,6 +101,7 @@ func main() {
             h := &RtmpHandler{}
             h.session = session
             h.m = mediaEngine
+            h.default_options = janus_options
 
             return conn, &rtmp.ConnConfig{
                 Handler: h,
@@ -102,7 +112,7 @@ func main() {
         },
     })
 
-    log.Println("Listening for RTMP connections on",os.Args[1])
+    log.Println("Listening for RTMP connections on",args[0])
 
     if err := srv.Serve(listener); err != nil {
         fmt.Printf("Failed: %v\n", err)

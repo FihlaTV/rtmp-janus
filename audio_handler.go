@@ -3,7 +3,7 @@ package main
 
 import (
 /*
-#cgo CFLAGS: -Wall -Wextra -g
+#cgo CFLAGS: -g
 #include "aac_decoder.h"
 #include "opus_encoder.h"
 #include "audio_fifo.h"
