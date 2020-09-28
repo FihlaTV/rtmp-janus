@@ -12,19 +12,19 @@
 static AVCodec *codec = NULL;
 
 int
-opus_encoder_init(void) {
+rtmpjanus_opus_encoder_init(void) {
     codec = avcodec_find_encoder_by_name("libopus");
     return codec == NULL;
 }
 
-opus_encoder_t *
-opus_encoder_new(uint32_t channels) {
+rtmpjanus_opus_encoder_t *
+rtmpjanus_opus_encoder_new(uint32_t channels) {
     int r;
-    opus_encoder_t *e = NULL;
+    rtmpjanus_opus_encoder_t *e = NULL;
 
     if(codec == NULL) return NULL;
 
-    e = (opus_encoder_t *)av_mallocz(sizeof(opus_encoder_t));
+    e = (rtmpjanus_opus_encoder_t *)av_mallocz(sizeof(rtmpjanus_opus_encoder_t));
     if(e == NULL) return NULL;
 
     e->opts = NULL;
@@ -55,7 +55,7 @@ opus_encoder_new(uint32_t channels) {
 
     r = avcodec_open2(e->ctx,codec,&e->opts);
     if(r != 0) {
-        opus_encoder_close(e);
+        rtmpjanus_opus_encoder_close(e);
         return NULL;
     }
 
@@ -67,7 +67,7 @@ opus_encoder_new(uint32_t channels) {
 }
 
 void
-opus_encoder_close(opus_encoder_t *e) {
+rtmpjanus_opus_encoder_close(rtmpjanus_opus_encoder_t *e) {
     if(e->ctx != NULL) avcodec_free_context(&e->ctx);
     if(e->opts != NULL) av_dict_free(&e->opts);
     if(e->packet != NULL) av_free_packet(e->packet);
@@ -78,7 +78,7 @@ opus_encoder_close(opus_encoder_t *e) {
 
 
 AVPacket *
-opus_encoder_encode(opus_encoder_t *e, AVFrame *frame) {
+rtmpjanus_opus_encoder_encode(rtmpjanus_opus_encoder_t *e, AVFrame *frame) {
     int got = 0;
     int r;
 

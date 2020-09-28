@@ -20,9 +20,9 @@ import (
 )
 
 type AudioHandler struct {
-    decoder *C.aac_decoder_t
-    encoder *C.opus_encoder_t
-    fifo *C.audio_fifo_t
+    decoder *C.rtmpjanus_aac_decoder_t
+    encoder *C.rtmpjanus_opus_encoder_t
+    fifo *C.rtmpjanus_audio_fifo_t
     audioTrack *webrtc.Track
     samplerate uint32
     channels uint32
@@ -30,9 +30,9 @@ type AudioHandler struct {
 
 func NewAudioHandler() *AudioHandler {
     h := new(AudioHandler)
-    h.decoder = C.aac_decoder_new()
-    h.encoder = C.opus_encoder_new(2)
-    h.fifo    = C.audio_fifo_new(48000,2)
+    h.decoder = C.rtmpjanus_aac_decoder_new()
+    h.encoder = C.rtmpjanus_opus_encoder_new(2)
+    h.fifo    = C.rtmpjanus_audio_fifo_new(48000,2)
     h.samplerate = 0
     h.channels = 0
     return h
@@ -40,9 +40,9 @@ func NewAudioHandler() *AudioHandler {
 
 
 func (h *AudioHandler) Close() {
-    C.aac_decoder_close(h.decoder)
-    C.opus_encoder_close(h.encoder)
-    C.audio_fifo_close(h.fifo)
+    C.rtmpjanus_aac_decoder_close(h.decoder)
+    C.rtmpjanus_opus_encoder_close(h.encoder)
+    C.rtmpjanus_audio_fifo_close(h.fifo)
 }
 
 var freqindex = [13]uint32 {
@@ -97,8 +97,8 @@ func (h *AudioHandler) Push(audio *flvtag.AudioData) error {
            return errors.New("Unsupported audio channels")
        }
 
-       C.aac_decoder_open(h.decoder,(*C.uint8_t)(&header[0]),C.size_t(len(header)))
-       C.audio_fifo_open(h.fifo,C.uint32_t(h.samplerate),C.uint32_t(h.channels))
+       C.rtmpjanus_aac_decoder_open(h.decoder,(*C.uint8_t)(&header[0]),C.size_t(len(header)))
+       C.rtmpjanus_audio_fifo_open(h.fifo,C.uint32_t(h.samplerate),C.uint32_t(h.channels))
 
        return nil
    }
@@ -117,17 +117,17 @@ func (h *AudioHandler) Push(audio *flvtag.AudioData) error {
        }
        */
 
-       dec_frame := C.aac_decoder_decode(h.decoder,(*C.uint8_t)(&b[0]),C.size_t(len(b)))
+       dec_frame := C.rtmpjanus_aac_decoder_decode(h.decoder,(*C.uint8_t)(&b[0]),C.size_t(len(b)))
        if dec_frame == nil {
            fmt.Printf("Error decoding AAC audio")
            return errors.New("Error decoding AAC audio")
        }
 
-       C.audio_fifo_load(h.fifo,dec_frame)
+       C.rtmpjanus_audio_fifo_load(h.fifo,dec_frame)
 
-       for C.audio_fifo_size(h.fifo) >= h.encoder.neededSamples {
-           raw_frame := C.audio_fifo_read(h.fifo,h.encoder.neededSamples)
-           packet := C.opus_encoder_encode(h.encoder,raw_frame)
+       for C.rtmpjanus_audio_fifo_size(h.fifo) >= h.encoder.neededSamples {
+           raw_frame := C.rtmpjanus_audio_fifo_read(h.fifo,h.encoder.neededSamples)
+           packet := C.rtmpjanus_opus_encoder_encode(h.encoder,raw_frame)
            sample := make([]byte, packet.size)
            C.memcpy(
              unsafe.Pointer(&sample[0]),

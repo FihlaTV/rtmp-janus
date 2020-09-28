@@ -12,17 +12,17 @@
 static AVCodec *codec = NULL;
 
 int
-aac_decoder_init(void) {
+rtmpjanus_aac_decoder_init(void) {
     codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
     return codec == NULL;
 }
 
-aac_decoder_t *
-aac_decoder_new(void) {
-    aac_decoder_t *d = NULL;
+rtmpjanus_aac_decoder_t *
+rtmpjanus_aac_decoder_new(void) {
+    rtmpjanus_aac_decoder_t *d = NULL;
     if(codec == NULL) return NULL;
 
-    d = (aac_decoder_t *)av_mallocz(sizeof(aac_decoder_t));
+    d = (rtmpjanus_aac_decoder_t *)av_mallocz(sizeof(rtmpjanus_aac_decoder_t));
     if(d == NULL) return NULL;
 
     d->f = av_frame_alloc();
@@ -43,7 +43,7 @@ aac_decoder_new(void) {
 
 
 int
-aac_decoder_open(aac_decoder_t *d, uint8_t *header, size_t headerLen) {
+rtmpjanus_aac_decoder_open(rtmpjanus_aac_decoder_t *d, uint8_t *header, size_t headerLen) {
     d->ctx->extradata = av_mallocz((headerLen + 15) & ~0x07);
     d->ctx->extradata_size = headerLen;
     memcpy(d->ctx->extradata,header,headerLen);
@@ -52,14 +52,14 @@ aac_decoder_open(aac_decoder_t *d, uint8_t *header, size_t headerLen) {
 }
 
 void
-aac_decoder_close(aac_decoder_t *d) {
+rtmpjanus_aac_decoder_close(rtmpjanus_aac_decoder_t *d) {
     avcodec_free_context(&d->ctx);
     av_frame_free(&d->f);
     av_free(d);
 }
 
 AVFrame *
-aac_decoder_decode(aac_decoder_t *d, uint8_t *data, size_t len) {
+rtmpjanus_aac_decoder_decode(rtmpjanus_aac_decoder_t *d, uint8_t *data, size_t len) {
     AVPacket packet;
     int got;
     int read;

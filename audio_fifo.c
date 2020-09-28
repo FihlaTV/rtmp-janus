@@ -14,11 +14,11 @@
 #define DEBUG_LOG(...)
 #endif
 
-audio_fifo_t *
-audio_fifo_new(uint32_t out_samplerate, uint32_t out_channels) {
-    audio_fifo_t *f = NULL;
+rtmpjanus_audio_fifo_t *
+rtmpjanus_audio_fifo_new(uint32_t out_samplerate, uint32_t out_channels) {
+    rtmpjanus_audio_fifo_t *f = NULL;
 
-    f = (audio_fifo_t *)av_mallocz(sizeof(audio_fifo_t));
+    f = (rtmpjanus_audio_fifo_t *)av_mallocz(sizeof(rtmpjanus_audio_fifo_t));
     if(f == NULL) return NULL;
 
     f->out_samplerate = out_samplerate;
@@ -69,7 +69,7 @@ audio_fifo_new(uint32_t out_samplerate, uint32_t out_channels) {
 }
 
 
-void audio_fifo_close(audio_fifo_t *f) {
+void rtmpjanus_audio_fifo_close(rtmpjanus_audio_fifo_t *f) {
     if(f->frame != NULL) {
         av_frame_free(&f->frame);
     }
@@ -87,7 +87,7 @@ void audio_fifo_close(audio_fifo_t *f) {
 
 
 int
-audio_fifo_open(audio_fifo_t *f, uint32_t in_samplerate, uint32_t in_channels) {
+rtmpjanus_audio_fifo_open(rtmpjanus_audio_fifo_t *f, uint32_t in_samplerate, uint32_t in_channels) {
     av_opt_set_channel_layout(f->resampler, "in_channel_layout", av_get_default_channel_layout(in_channels), 0);
     av_opt_set_int(f->resampler,"in_sample_rate", in_samplerate, 0);
     av_opt_set_sample_fmt(f->resampler,"in_sample_fmt", AV_SAMPLE_FMT_FLTP, 0);
@@ -96,7 +96,7 @@ audio_fifo_open(audio_fifo_t *f, uint32_t in_samplerate, uint32_t in_channels) {
 }
 
 static int
-audio_fifo_realloc_buffer(audio_fifo_t *f, uint32_t size) {
+rtmpjanus_audio_fifo_realloc_buffer(rtmpjanus_audio_fifo_t *f, uint32_t size) {
     uint8_t *newBuffer = NULL;
     uint32_t newBufferSize = f->bufferSize;
 
@@ -117,12 +117,12 @@ audio_fifo_realloc_buffer(audio_fifo_t *f, uint32_t size) {
     return 0;
 }
 
-int audio_fifo_load(audio_fifo_t *f, AVFrame *frame) {
+int rtmpjanus_audio_fifo_load(rtmpjanus_audio_fifo_t *f, AVFrame *frame) {
     int samples_needed;
     int out_samples;
 
     samples_needed = swr_get_out_samples(f->resampler,frame->nb_samples);
-    if(audio_fifo_realloc_buffer(f,(uint32_t)samples_needed) != 0) {
+    if(rtmpjanus_audio_fifo_realloc_buffer(f,(uint32_t)samples_needed) != 0) {
         return 1;
     }
 
@@ -142,12 +142,12 @@ int audio_fifo_load(audio_fifo_t *f, AVFrame *frame) {
 }
 
 uint32_t
-audio_fifo_size(audio_fifo_t *f) {
+rtmpjanus_audio_fifo_size(rtmpjanus_audio_fifo_t *f) {
     return (uint32_t) av_audio_fifo_size(f->fifo);
 }
 
 AVFrame *
-audio_fifo_read(audio_fifo_t *f, uint32_t samples) {
+rtmpjanus_audio_fifo_read(rtmpjanus_audio_fifo_t *f, uint32_t samples) {
     uint32_t bufferSizeBytes;
     int r;
 
@@ -156,7 +156,7 @@ audio_fifo_read(audio_fifo_t *f, uint32_t samples) {
         return NULL;
     }
 
-    if(audio_fifo_realloc_buffer(f,samples) != 0) {
+    if(rtmpjanus_audio_fifo_realloc_buffer(f,samples) != 0) {
         DEBUG_LOG("could not realloc buffer\n");
         return NULL;
     }
@@ -183,7 +183,7 @@ audio_fifo_read(audio_fifo_t *f, uint32_t samples) {
 }
 
 AVFrame *
-audio_fifo_flush(audio_fifo_t *f) {
+rtmpjanus_audio_fifo_flush(rtmpjanus_audio_fifo_t *f) {
     uint32_t bufferSizeBytes;
     int r;
     uint32_t samples;
@@ -206,7 +206,7 @@ audio_fifo_flush(audio_fifo_t *f) {
         return NULL;
     }
 
-    if(audio_fifo_realloc_buffer(f,samples) != 0) {
+    if(rtmpjanus_audio_fifo_realloc_buffer(f,samples) != 0) {
         DEBUG_LOG("could not realloc buffer\n");
         return NULL;
     }

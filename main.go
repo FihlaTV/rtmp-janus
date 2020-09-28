@@ -25,8 +25,8 @@ import (
 
 func main() {
     C.avcodec_register_all()
-    C.aac_decoder_init()
-    C.opus_encoder_init()
+    C.rtmpjanus_aac_decoder_init()
+    C.rtmpjanus_opus_encoder_init()
 
     // create mediaengine and register codecs
 
